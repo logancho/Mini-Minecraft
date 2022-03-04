@@ -1,0 +1,20 @@
+help log -
+
+11/9 - 
+https://stackoverflow.com/questions/11516657/c-structure-initialization
+https://stackoverflow.com/questions/6810656/creating-an-array-of-structs-in-c/6810672
+https://stackoverflow.com/questions/5289597/how-to-use-vectorpush-back-with-a-struct
+- used the sites above to work with arrays of structs
+
+
+11/12 - Di helped with more efficient chunking 
+
+11/14 to 11/16 - used multithreading lecture to implement multithreading
+
+11/19 - Adam and Emma helped with solving 1282 errors involving drawing chunks with no VBO data
+
+12/3 - Emma helped to solve 1282 error involving frame buffers and texture slots
+
+12/6 - 
+https://stackoverflow.com/questions/51220257/compilation-error-related-to-map-and-unordered-map-attempting-to-reference-a-d
+- used the site above to store vectors as keys of maps

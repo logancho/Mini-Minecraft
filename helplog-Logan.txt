@@ -1,0 +1,59 @@
+Help Log - Logan
+Checkpoint 1
+
+5:11pm, 10th November,
+Searched online about struct initialization
+
+https://stackoverflow.com/questions/1069621/are-members-of-a-c-struct-initialized-to-0-by-default
+
+3:00pm, 12th November, Di and Adam helped me during office hours
+
+Checkpoint 2
+
+1:40am, 18th Nov, Used https://open.gl/textures and https://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
+
+19th Nov, 2:38pm, OHQ: Adam and Emma helped Helena and I with a significant bug in our code, added if statements to check if elemcount for both of my VBOs were not zero before attempting to draw in terrain.cpp!!
+
+
+(Some notes for myself):
+Step by step addition of uniform sampler VBO for cpu-> gpu
+
+1. GLuint handle for 2Duniformsampler in MyGL
+
+2. In our shader program, get the handles to the variables stored in our shader (associated with some string)
+
+unifSampler2D  = context->glGetUniformLocation(prog, "u_Texture");
+
+3. Draw 
+
+inside draw function, 
+
+if(unifSampler2D != -1)
+    {
+        context->glUniform1i(unifSampler2D, 0);
+    }
+
+4. Add string handle to glsl frag shader!
+
+!!! Super important for texture sampling:
+
+You need to call glBindTexture(textureHandle, /*GL_TEXTURE*/textSlot) every frame in 
+GLPaint!!!!!
+
+https://learnopengl.com/Getting-started/Textures
+
+source code while loop helped:
+https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/4.1.textures/textures.cpp
+
+
+Checkpoint 3:
+
+Office hours: Help from Emma and Adam on both solving a merge bug with my team (GL1282) and also clarifying point values for checkpoint 3.
+
+Office hours: Ashley helped me a lot with my scene graph texturing ideas.
+
+AI pathfinder resources:
+
+https://www.redblobgames.com/pathfinding/a-star/introduction.html
+
+https://gaming.stackexchange.com/questions/380002/why-are-these-sheep-crowding-into-this-group

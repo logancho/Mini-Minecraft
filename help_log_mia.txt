@@ -1,0 +1,22 @@
+HELP LOG MIA
+
+MILESTONE 1
+
+2021-11-08: Felicity helped me clarify components regarding the Procedural Terrain task
+2021-11-09: Adam gave me pointers on what I could change so that my Perlin noise wouldn't output only 0.0
+2021-11-10: Zach helped me go through my FBM - Perlin noise function to see why I was getting
+2021-10-12: Emma helped me try and debug the reason my Worley noise function was causing random rectangular sections to appear
+2021-10-12: Di helped my team and I try to figure out some chunking / terrain rendering issues we were having
+
+MILESTONE 2
+
+2021-11-17: Adam helped me look for the particular places in my noise functions so that I could see the changes that I wanted as I still wasn't entirely happy with my terrain
+2021-11-20: used https://glm.g-truc.net/0.9.4/api/a00130.html#gac93ea301c287d87a63fa14a4c44b719b
+2021-11-21: used https://stackoverflow.com/questions/25838418/qt-keypressevent-hold-and-keyreleaseevent-handling-with-buttons-mouse-clicks
+
+MILESTONE 3
+
+2021-12-02: Emma helped me think about how I can interpolate between 2+ biomes
+2021-12-03: Emma helped our group fix a frame buffer issue that was occurring with our non-Mac PC group member
+2021-12-03: Adam helped my group solidify our milestone 3 ideas
+2021-12-07: Ashley helped me think about the extra credit section

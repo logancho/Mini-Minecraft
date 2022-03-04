@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>textures/mctexture.png</file>
+        <file>textures/mctextureUnlabelled.png</file>
+        <file>textures/SteveSkin.png</file>
+        <file>textures/Bear3.png</file>
+        <file>textures/bird2.png</file>
+    </qresource>
+</RCC>
