@@ -8,12 +8,16 @@ E,Q: for up and down movement in flight mode.
 T: toggle 3rd person view (Polar camera controlled by mouse)
 Y: Activate Bear's Player-tracking AI when within range
 U: Activate Bird's Player-tracking AI when within range
-
+-------------------------------------
 Instructions:
 Use QT Creator to run the .pro file on your system to enjoy the full experience!
+-------------------------------------
+Website for more reading/code analysis (my NPC AI algorithm in particular):
+https://www.logancho.com/mini-minecraft
 
+-------------------------------------
 CREDIT (3 Checkpoints across the entire project):
-
+-------------------------------------
 Checkpoint 1: https://vimeo.com/645386677
 
 Helena: Efficient terrain rendering and chunking
