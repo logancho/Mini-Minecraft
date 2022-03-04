@@ -1,4 +1,18 @@
-Checkpoint Role Responsibilities Readme:
+=====================================
+CIS 460 Final Project: Mini-Minecraft
+=====================================
+Controls:
+F: toggle flight mode (default set to true) (no collision detection during flight mode)
+W,A,S,D: for forward, left, back and right movement.
+E,Q: for up and down movement in flight mode.
+T: toggle 3rd person view (Polar camera controlled by mouse)
+Y: Activate Bear's Player-tracking AI when within range
+U: Activate Bird's Player-tracking AI when within range
+
+Instructions:
+Use QT Creator to run the .pro file on your system to enjoy the full experience!
+
+CREDIT (3 Checkpoints across the entire project):
 
 Checkpoint 1: https://vimeo.com/645386677
 
@@ -43,7 +57,6 @@ Mia: Cave Systems
 Using the class slides, I added a new function to our Biome class, perlinNoise3D. Initially I tested the noise function out for y coordinates in the range [64, 128] so that it would be easier to see the results of adjusting the denominator for the (x, y, z) coordinate input. Since the cave system implementation causes the program to slow down a little, we discussed as a group that a potential solution was to use 2 different noise functions which would determine the y values for the bottom y value and top y value of a cave opening for each (x, z) coordinate.
 
 For the shaders that are applied when the players is submerged in lava and water, I reviewed the HW04 materials and used it as an example. I added 2 new post process shaders which interpolate between pure red/blue and the input color. A challenge we encountered was that the shaders wouldn't activate/deactivate exactly when the player's eyeline was crossing the liquid surface - we did some fiddling in the player class to fix this problem.
-
 
 Checkpoint 3: Link to final video: https://youtu.be/rdcXJfIWjBc
 
