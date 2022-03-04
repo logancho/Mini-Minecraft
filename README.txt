@@ -18,7 +18,7 @@ Checkpoint 1: https://vimeo.com/645386677
 
 Helena: Efficient terrain rendering and chunking
 
-Optimized VBO generation by generating a set of VBO per chunk for every chunk needed in the currently generated terrain. Created functions in the chunk class that can effectively check over neighboring chunks and neighboring blocks to determine if faces need to be generated. Also modified how terrain is generated: from determined whether a zone has been generated, generating each chunk, creating the VBOs for each chunk generated, and drawing the chunks. Seeked help to optimize the order of generating new zones.
+Optimized VBO generation by generating a set of VBO per chunk for every chunk needed in the currently generated terrain. Created functions in the chunk class that can effectively check over neighboring chunks and neighboring blocks to determine if faces need to be generated. Also modified how terrain is generated: from determined whether a zone has been generated, generating each hunk, creating the VBOs for each chunk generated, and drawing the chunks. Seeked help to optimize the order of generating new zones.
 
 The most challenging portion of the milestone is working with the interleaved VBO and creating and sending the VBOs across different files. Since there were many files that needed to be modified to account for the new set of data, it was hard to keep track of which files I still needed to modify while keeping the files compatible with other shaders. 
 
