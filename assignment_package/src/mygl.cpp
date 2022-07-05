@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QDateTime>
+#include <ApplicationServices/ApplicationServices.h>
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
@@ -50,6 +51,12 @@ void MyGL::moveMouseToCenter() {
 
 void MyGL::initializeGL()
 {
+    if(AXIsProcessTrusted()) {
+        std::cout << "trusted accessibility client, will be able to move the mouse" << std::endl;
+    } else {
+        std::cout << "not a trusted trusted accessibility client, wont be able to move the mouse" << std::endl;
+    }
+
     // Create an OpenGL context using Qt's QOpenGLFunctions_3_2_Core class
     // If you were programming in a non-Qt context you might use GLEW (GL Extension Wrangler)instead
     initializeOpenGLFunctions();
