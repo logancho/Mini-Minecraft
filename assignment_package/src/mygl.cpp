@@ -139,6 +139,8 @@ void MyGL::initializeGL()
     m_prevPos = glm::vec2(pPos);
     m_geomQuad.createVBOdata(); // check if this line is in the right place
 
+    //have terrain create our platform!
+
 }
 
 void MyGL::resizeGL(int w, int h) {

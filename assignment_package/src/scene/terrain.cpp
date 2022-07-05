@@ -326,6 +326,9 @@ void Terrain::create(glm::ivec2 curr_zone)
     vbo_data.clear();
     vbo_dataT.clear();
     lock_VBO.unlock();
+
+    //
+    placeBlock(glm::ivec3(2.f, 140.f, 13.f), 0, 0, 0, CACTUS);
 }
 
 void Terrain::draw(glm::vec2 curr_pos, ShaderProgram *shaderProgram) {
@@ -460,6 +463,11 @@ void Terrain::buildcactus() {
         cactusHeap.pop();
     }
 }
+//m_bear(glm::ivec3(2.f, 150.f, 13.f), m_terrain, this, m_player),
+//2 140 13
+//placeBlock(glm::ivec3(2.f, 140.f, 13.f), 0, 0, 0, CACTUS);
+//glm::ivec3 bruh = glm::ivec3()
+//placeBlock(bruh,
 
 int Terrain::toLocal(int i) {
     return (i % 16 + 16) % 16;
