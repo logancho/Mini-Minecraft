@@ -180,7 +180,7 @@ void BlockTypeWorker::CreateTerrain(Chunk* c) {
                 c->setBlockAt(x, y, z, biome.underTopBlock);
             }
 
-            // blocks under ground level
+           //blocks under ground level
             if (biome.underTopBlock == BEDROCK) {
                 c->setBlockAt(x, 50, z, BEDROCK);
                 for (int i = 51; i < 103; i++) {
@@ -231,6 +231,4 @@ void BlockTypeWorker::CreateTerrain(Chunk* c) {
 
         tree_lock->unlock();
     }
-
-
 }

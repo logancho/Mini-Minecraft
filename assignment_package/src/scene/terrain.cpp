@@ -210,7 +210,6 @@ void Terrain::expand(glm::vec2 curr_pos, glm::vec2 &prev_pos) {
         if (m_generatedTerrain.count(curr_borderingZone) == 0) {
             spawnBlockTypeWorker(curr_borderingZone);
 
-
         } else if (prev_border.count(curr_borderingZone) == 0) {
             glm::ivec2 curr_coord = toCoords(curr_borderingZone);
             for (int chunk_x = curr_coord.x; chunk_x < curr_coord.x + 64; chunk_x += 16) {
@@ -224,46 +223,47 @@ void Terrain::expand(glm::vec2 curr_pos, glm::vec2 &prev_pos) {
             }
         }
     }
+//////////////////////////////3:51pm 6 Jul
+//    spreadFlat();
+//    buildcactus();
 
-    spreadFlat();
-    buildcactus();
+//    lock_Tree.lock();
+//    std::unordered_set<glm::ivec2*> notPlaced;
+//    std::vector<Chunk*> chunkArea;
 
-    lock_Tree.lock();
-    std::unordered_set<glm::ivec2*> notPlaced;
-    std::vector<Chunk*> chunkArea;
+//    for (glm::ivec2* coord : tree) {
+//        chunkArea.clear();
+//        bool build = true;
+//        int loc = 0;
+//        for (int x = 16 * glm::floor((coord->x - 16) / 16.f); x <= 16 * glm::floor((coord->x + 16) / 16.f); x += 16) {
+//            for (int z = 16 * glm::floor((coord->y - 16) / 16.f); z <= 16 * glm::floor((coord->y + 16) / 16.f); z += 16) {
+//                build = build && hasChunkAt(x, z);
+//                if (hasChunkAt(x, z)) {
+//                    chunkArea.push_back(getChunkAt(x, z).get());
+//                    loc++;
+//                }
+//            }
+//        }
+//        if (build) {
+//            Tree t = Tree(glm::ivec2(16 + toLocal(coord->x), 16 + toLocal(coord->y)), chunkArea);
+//            t.drawBase1();
+//            t.drawTrunk();
+//            t.drawTop();
+//            // add all the chunks into need_VBO
+//            lock_BlockType.lock();
+//            for (Chunk* c : chunkArea) {
+//                need_VBO.insert(c);
+//            }
+//            lock_BlockType.unlock();
+//        } else {
+//            notPlaced.insert(coord);
+//        }
+//    }
 
-    for (glm::ivec2* coord : tree) {
-        chunkArea.clear();
-        bool build = true;
-        int loc = 0;
-        for (int x = 16 * glm::floor((coord->x - 16) / 16.f); x <= 16 * glm::floor((coord->x + 16) / 16.f); x += 16) {
-            for (int z = 16 * glm::floor((coord->y - 16) / 16.f); z <= 16 * glm::floor((coord->y + 16) / 16.f); z += 16) {
-                build = build && hasChunkAt(x, z);
-                if (hasChunkAt(x, z)) {
-                    chunkArea.push_back(getChunkAt(x, z).get());
-                    loc++;
-                }
-            }
-        }
-        if (build) {
-            Tree t = Tree(glm::ivec2(16 + toLocal(coord->x), 16 + toLocal(coord->y)), chunkArea);
-            t.drawBase1();
-            t.drawTrunk();
-            t.drawTop();
-            // add all the chunks into need_VBO
-            lock_BlockType.lock();
-            for (Chunk* c : chunkArea) {
-                need_VBO.insert(c);
-            }
-            lock_BlockType.unlock();
-        } else {
-            notPlaced.insert(coord);
-        }
-    }
-
-    tree = notPlaced;
-    lock_Tree.unlock();
-
+//    tree = notPlaced;
+//    lock_Tree.unlock();
+//////////////////////////////3:51pm 6 Jul
+///
     lock_BlockType.lock();
     if (toKey(curr_zone.x, curr_zone.y) != toKey(prev_zone.x, prev_zone.y)) {
         for (Chunk* c : prev_chunk_border) {
@@ -299,7 +299,6 @@ void Terrain::create(glm::ivec2 curr_zone)
         for (int zone_z = curr_zone.y - 128; zone_z <= curr_zone.y + 128; zone_z += 64) {
             int64_t zone_key = toKey(zone_x, zone_z);
             spawnBlockTypeWorker(zone_key);
-
             // check if VBO data is needed
         }
     }
@@ -328,8 +327,35 @@ void Terrain::create(glm::ivec2 curr_zone)
     lock_VBO.unlock();
 
     //
-    placeBlock(glm::ivec3(2.f, 140.f, 13.f), 0, 0, 0, CACTUS);
+
+    ////CUSTOM MAP////
+    glm::ivec3 ref = glm::ivec3(2.f, 140.f, 13.f);
+    placeBlock(ref, 0, 0, 0, GRASS);
+    placeBlock(ref, -1, 0, 0, GRASS);
+    placeBlock(ref, -2, 0, 0, GRASS);
+    placeBlock(ref, 0, 0, -1, GRASS);
+    placeBlock(ref, -1, 0, -1, GRASS);
+    placeBlock(ref, -2, 0, -1, GRASS);
+    placeBlock(ref, 0, 0, -2, SNOW);
+    placeBlock(ref, -1, 0, -2, SNOW);
+    placeBlock(ref, -2, 0, -2, SNOW);
+
+    placeBlock(ref, -1, 1, -3, WOOD);
+    placeBlock(ref, -1, 2, -4, WOOD);
+    placeBlock(ref, 0, 3, -4, WOOD);
+    ////CUSTOM MAP////
 }
+/*
+ * enum BlockType : unsigned char
+{
+    EMPTY, GRASS, DIRT, STONE, WATER, SNOW, LAVA, BEDROCK,
+    WOOD, LEAF, YELLOW_FLOWER, SAND, SEAGRASS, RED_STONE,
+    RED_MUSHROOMS, ICE, DARK_GRASS, DESERT, CACTUS, DEAD_PLANT,
+    BROWN_MUSHROOMS, TALL_GRASS, PLANK, COBBLE, BRICK, CORAL_PINK,
+    CORAL_PURPLE, CORAL_ORANGE
+};
+
+ */
 
 void Terrain::draw(glm::vec2 curr_pos, ShaderProgram *shaderProgram) {
     glm::ivec2 curr_zone = glm::ivec2(64 * glm::floor(curr_pos.x / 64.f), 64 * glm::floor(curr_pos.y / 64.f));
@@ -345,18 +371,18 @@ void Terrain::draw(glm::vec2 curr_pos, ShaderProgram *shaderProgram) {
             }
         }
     }
-    for (int zone_x = curr_zone.x - 64; zone_x <= curr_zone.x + 64; zone_x += 64) {
-        for (int zone_z = curr_zone.y - 64; zone_z <= curr_zone.y + 64; zone_z += 64) {
-            for (int chunk_x = zone_x; chunk_x < zone_x + 64; chunk_x += 16) {
-                for (int chunk_z = zone_z; chunk_z < zone_z + 64; chunk_z += 16) {
-                    Chunk* c = getChunkAt(chunk_x, chunk_z).get();
-                    if(c->elemCountT() > 0) {
-                        shaderProgram->drawT(*c);
-                    }
-                }
-            }
-        }
-    }
+//    for (int zone_x = curr_zone.x - 64; zone_x <= curr_zone.x + 64; zone_x += 64) {
+//        for (int zone_z = curr_zone.y - 64; zone_z <= curr_zone.y + 64; zone_z += 64) {
+//            for (int chunk_x = zone_x; chunk_x < zone_x + 64; chunk_x += 16) {
+//                for (int chunk_z = zone_z; chunk_z < zone_z + 64; chunk_z += 16) {
+//                    Chunk* c = getChunkAt(chunk_x, chunk_z).get();
+//                    if(c->elemCountT() > 0) {
+//                        shaderProgram->drawT(*c);
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 std::unordered_set<int64_t> Terrain::border(int64_t center) {
@@ -463,11 +489,6 @@ void Terrain::buildcactus() {
         cactusHeap.pop();
     }
 }
-//m_bear(glm::ivec3(2.f, 150.f, 13.f), m_terrain, this, m_player),
-//2 140 13
-//placeBlock(glm::ivec3(2.f, 140.f, 13.f), 0, 0, 0, CACTUS);
-//glm::ivec3 bruh = glm::ivec3()
-//placeBlock(bruh,
 
 int Terrain::toLocal(int i) {
     return (i % 16 + 16) % 16;

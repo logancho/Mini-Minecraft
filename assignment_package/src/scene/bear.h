@@ -59,6 +59,7 @@ public:
     bool pathFinder;
     std::deque<MobDirection> path;
     glm::ivec3 prevPos;
+    glm::ivec3 prevAutoJumpBlock;
 
     Bear(glm::vec3 pos, const Terrain &terrain, OpenGLContext* context, const Player &p);
     virtual ~Bear() override;

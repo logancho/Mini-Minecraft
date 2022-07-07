@@ -232,7 +232,7 @@ void VBOWorker::generateVBOData(VBOData* data, VBOData* dataT) {
                                     y_0 = 3.f;
                                     break;
                                 case SNOW:
-                                    opaque = false;
+//                                    opaque = false;
                                     x_0 = 2.f;
                                     y_0 = 11.f;
                                     break;

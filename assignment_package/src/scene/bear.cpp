@@ -22,7 +22,8 @@ Bear::Bear(glm::vec3 pos, const Terrain &terrain, OpenGLContext* context, const 
       armAnimation(false),
       pathFinder(false),
       path(),
-      prevPos(0, 0, 0)
+      prevPos(0, 0, 0),
+      prevAutoJumpBlock(0, 0, 0)
 {}
 
 Bear::~Bear()
@@ -705,6 +706,18 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
 //                Allow to jump over block of height unit 1
             if (terrain.getBlockAt(closestOut_BlockHitX.x, closestOut_BlockHitX.y + 1, closestOut_BlockHitX.z) == BlockType::EMPTY
                     && jumpReady && glm::abs(m_velocity.x) > autoJumpThreshold) {
+                if (prevAutoJumpBlock == glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z)) {
+                    //compare center of block to bear's position, then determine whether we need to move left or right
+                    //clearly, we are jumping in the +z direction in this case, therefore, we will adjust either +- x
+//                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
+                    std::cout << "Yo! x repeat\n";
+                    if (closestOut_BlockHitZ.z + 0.5 - m_position.z > 0) {
+                        m_velocity.z = 2.f;
+                    } else {
+                        m_velocity.z = -2.f;
+                    }
+                }
+                prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
                 m_velocity.y = 6.0f;
                 jumpReady = false;
             }
@@ -719,6 +732,19 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
 //                Allow to jump over block of height unit 1
             if (terrain.getBlockAt(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z) == BlockType::EMPTY
                     && jumpReady && glm::abs(m_velocity.z) > autoJumpThreshold) {
+                //
+                if (prevAutoJumpBlock == glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z)) {
+                    std::cout << "Yo! z repeat\n";
+                    //compare center of block to bear's position, then determine whether we need to move left or right
+                    //clearly, we are jumping in the +z direction in this case, therefore, we will adjust either +- x
+//                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
+                    if (closestOut_BlockHitZ.x + 0.5 - m_position.x > 0) {
+                        m_velocity.x = 2.f;
+                    } else {
+                        m_velocity.x = -2.f;
+                    }
+                }
+                prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
                 m_velocity.y = 6.0f;
                 jumpReady = false;
             }

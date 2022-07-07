@@ -14,7 +14,7 @@ MyGL::MyGL(QWidget *parent)
       m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
       terrainTexture(), playerTexture(), bearTexture(),
       m_geomQuad(this),
-      m_terrain(this), m_player(glm::vec3(13.f, 120.f, 13.f), m_terrain, this),
+      m_terrain(this), m_player(glm::vec3(5.f, 160.f, 15.f), m_terrain, this),
       inputB(),
       currentMSecs(QDateTime::currentMSecsSinceEpoch()),
       curMouseX(0.f),
@@ -26,7 +26,7 @@ MyGL::MyGL(QWidget *parent)
       m_time(0),
       m_prevPos(glm::vec2()),
       m_bear(glm::vec3(2.f, 150.f, 13.f), m_terrain, this, m_player),
-      m_bird(glm::vec3(5.f, 150.f, 13.f), m_terrain, this, m_player)
+      m_bird(glm::vec3(2.f, 150.f, 12.f), m_terrain, this, m_player)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -42,6 +42,14 @@ MyGL::~MyGL() {
     makeCurrent();
     glDeleteVertexArrays(1, &vao);
     m_geomQuad.destroyVBOdata();
+//    m_worldAxes.destroyVBOdata();
+//    m_player.m_geomCube.destroyVBOdata();
+//    m_bear.m_geomCube.destroyVBOdata();
+//    m_bird.m_geomCube.destroyVBOdata();
+//    m_frameBuffer.destroy();
+//    m_crosshair.destroyVBOdata();
+//    m_inventory.destroyVBOdata();
+//    m_blockSelection.destroyVBOdata();
 }
 
 
@@ -81,18 +89,22 @@ void MyGL::initializeGL()
     glGenVertexArrays(1, &vao);
 
     //Create the instance of the world axes
+    m_worldAxes.destroyVBOdata();
     m_worldAxes.createVBOdata();
 
     //Player Model:
     std::cout << "Calling in MyGL create for m_geomCube of player\n";
+    m_player.m_geomCube.destroyVBOdata();
     m_player.m_geomCube.createVBOdata();
     m_player.constructSceneGraph();
 
     //Bear Model:
+    m_bear.m_geomCube.destroyVBOdata();
     m_bear.m_geomCube.createVBOdata();
     m_bear.constructSceneGraph();
 
     //Bird model:
+    m_bird.m_geomCube.destroyVBOdata();
     m_bird.m_geomCube.createVBOdata();
     m_bird.constructSceneGraph();
 
@@ -137,6 +149,7 @@ void MyGL::initializeGL()
 
     m_terrain.create(zone);
     m_prevPos = glm::vec2(pPos);
+    m_geomQuad.destroyVBOdata();
     m_geomQuad.createVBOdata(); // check if this line is in the right place
 
     //have terrain create our platform!
@@ -319,15 +332,17 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    terrainReadyForNPCs = false;
+//    terrainReadyForNPCs = false;
     glm::vec2 pPos(m_player.mcr_position.x, m_player.mcr_position.z);
 
 
     glm::ivec2 zone(64 * glm::ivec2(glm::floor(pPos / 64.f)));
 
     m_terrain.expand(pPos, m_prevPos);
+        //create a new function to use instead of expand!
     m_terrain.draw(zone, &m_progLambert);
-    terrainReadyForNPCs = true;
+
+//    terrainReadyForNPCs = true;
 }
 
 void MyGL::keyPressEvent(QKeyEvent *e) {
@@ -631,6 +646,7 @@ void MyGL::traverse(const uPtr<Node>& cur, glm::mat4 t, int textureSlot) {
         //Modify UV
         cur->mCuboid->type = cur->type;
         //Draw
+        cur->mCuboid->destroyVBOdata();
         cur->mCuboid->createVBOdata();
         m_progLambert.draw(*(cur->mCuboid), textureSlot);
     }

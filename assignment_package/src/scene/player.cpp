@@ -57,11 +57,13 @@ void Player::playerAnimation(float dT) {
             } else {
                 (static_cast<RotateNode*>(leftArmRotate))->deg = 0.f;
             }
-//            if (rightArmRotate != nullptr && glm::abs((static_cast<RotateNode*>(rightArmRotate))->deg) >= 5.0f) {
-//                (static_cast<RotateNode*>(rightArmRotate))->deg = angle * glm::sin(animationTimer * 10.f);
-//            } else {
-//                (static_cast<RotateNode*>(rightArmRotate))->deg = 0.f;
-//            }
+            ////////////////////2:43pm Jul 7
+            if (rightArmRotate != nullptr && glm::abs((static_cast<RotateNode*>(rightArmRotate))->deg) >= 5.0f) {
+                (static_cast<RotateNode*>(rightArmRotate))->deg = angle * glm::sin(animationTimer * 10.f);
+            } else {
+                (static_cast<RotateNode*>(rightArmRotate))->deg = 0.f;
+            }
+            ////////////////////2:43pm Jul 7
             if (leftLegRotate != nullptr && glm::abs((static_cast<RotateNode*>(leftLegRotate))->deg) >= 5.0f) {
                 (static_cast<RotateNode*>(leftLegRotate))->deg = angle * glm::sin(animationTimer * 10.f);
             } else {
@@ -202,7 +204,7 @@ void Player::computePhysics(float dT, const Terrain &terrain, bool flightmode) {
         m_velocity.z *= friction;
         m_velocity.y *= 0.95;
     } else {
-        friction = 0.90f;
+        friction = 0.85f;
         m_velocity.x *= friction;
         m_velocity.z *= friction;
     }
@@ -306,7 +308,8 @@ void Player::computePhysics(float dT, const Terrain &terrain, bool flightmode) {
             }
         }
 
-        float autoJumpThreshold = 4.0f;
+//        float autoJumpThreshold = 4.0f;
+        float autoJumpThreshold = 2.0f;
         if (minOutDistY < std::numeric_limits<float>::infinity()) {
             if (minOutDistY < epsilon) {
                 rayDir.y = 0.f;
@@ -443,7 +446,9 @@ void Player::rotateOnRightLocal(float degrees) {
         } else {
             //If no hit animation:
             (static_cast<RotateNode*>(rightArmRotate2))->deg = 0.f;
-            (static_cast<RotateNode*>(rightArmRotate))->deg = defaultArmAngle;
+            if (!thirdPerson) {
+                (static_cast<RotateNode*>(rightArmRotate))->deg = defaultArmAngle;
+            }
         }
     }
 }
