@@ -712,9 +712,9 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
 //                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
                     std::cout << "Yo! x repeat\n";
                     if (closestOut_BlockHitZ.z + 0.5 - m_position.z > 0) {
-                        m_velocity.z = 2.f;
+                        m_velocity.z = 3.f;
                     } else {
-                        m_velocity.z = -2.f;
+                        m_velocity.z = -3.f;
                     }
                 }
                 prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
@@ -739,9 +739,9 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
                     //clearly, we are jumping in the +z direction in this case, therefore, we will adjust either +- x
 //                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
                     if (closestOut_BlockHitZ.x + 0.5 - m_position.x > 0) {
-                        m_velocity.x = 2.f;
+                        m_velocity.x = 3.f;
                     } else {
-                        m_velocity.x = -2.f;
+                        m_velocity.x = -3.f;
                     }
                 }
                 prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
