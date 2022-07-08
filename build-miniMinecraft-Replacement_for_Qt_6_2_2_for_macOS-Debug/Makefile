@@ -746,7 +746,18 @@ compiler_rcc_make_all: qrc_glsl.cpp qrc_textures.cpp
 compiler_rcc_clean:
 	-$(DEL_FILE) qrc_glsl.cpp qrc_textures.cpp
 qrc_glsl.cpp: ../assignment_package/glsl.qrc \
-		/Users/log/Qt/6.2.4/macos/libexec/rcc
+		/Users/log/Qt/6.2.4/macos/libexec/rcc \
+		../assignment_package/glsl/instanced.vert.glsl \
+		../assignment_package/glsl/water.frag.glsl \
+		../assignment_package/glsl/nothing.vert.glsl \
+		../assignment_package/glsl/lava.frag.glsl \
+		../assignment_package/glsl/flat.frag.glsl \
+		../assignment_package/glsl/flat.vert.glsl \
+		../assignment_package/glsl/lambert.frag.glsl \
+		../assignment_package/glsl/lambert.vert.glsl \
+		../assignment_package/glsl/water.vert.glsl \
+		../assignment_package/glsl/nothing.frag.glsl \
+		../assignment_package/glsl/lava.vert.glsl
 	/Users/log/Qt/6.2.4/macos/libexec/rcc -name glsl ../assignment_package/glsl.qrc -o qrc_glsl.cpp
 
 qrc_textures.cpp: ../assignment_package/textures.qrc \

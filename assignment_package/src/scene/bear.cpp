@@ -47,7 +47,7 @@ const static glm::ivec3 surroundingGrid[4] = {
 };
 
 //maxDist: Visible range for Bear NPC to detect Player
-const int maxDist = 15;
+const int maxDist = 20;
 
 void Bear::processInputsNPC() {
     playerDir = m_player.m_position - m_position;
@@ -162,6 +162,7 @@ void Bear::processInputsNPC() {
 
             //Now, since we have our finished weighted grid, we can make a path between the NPC and the player if
             //prev[playerPos] is not null, i.e. graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1
+
             if (graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1) {
                 //Replace old path with new path:
                 path.clear();
@@ -712,9 +713,9 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
 //                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
                     std::cout << "Yo! x repeat\n";
                     if (closestOut_BlockHitZ.z + 0.5 - m_position.z > 0) {
-                        m_velocity.z = 3.f;
+                        m_velocity.z = 0.5f;
                     } else {
-                        m_velocity.z = -3.f;
+                        m_velocity.z = -0.5f;
                     }
                 }
                 prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
@@ -739,9 +740,9 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
                     //clearly, we are jumping in the +z direction in this case, therefore, we will adjust either +- x
 //                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
                     if (closestOut_BlockHitZ.x + 0.5 - m_position.x > 0) {
-                        m_velocity.x = 3.f;
+                        m_velocity.x = 0.5f;
                     } else {
-                        m_velocity.x = -3.f;
+                        m_velocity.x = -0.5f;
                     }
                 }
                 prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
