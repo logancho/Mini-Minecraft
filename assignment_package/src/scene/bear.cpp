@@ -49,6 +49,14 @@ const static glm::ivec3 surroundingGrid[4] = {
 //maxDist: Visible range for Bear NPC to detect Player
 const int maxDist = 20;
 
+//inline double heuristic(GridLocation a, GridLocation b) {
+//  return std::abs(a.x - b.x) + std::abs(a.y - b.y);
+//}
+
+inline int heuristic(glm::ivec3 a, glm::ivec3 b) {
+    return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z);
+}
+
 void Bear::processInputsNPC() {
     playerDir = m_player.m_position - m_position;
 
@@ -63,130 +71,112 @@ void Bear::processInputsNPC() {
 
         //BFS NPC AI Player Pathfinder:
         if (pathFinder && path.empty()) {
+            ///////////
             //0. Find block positions of us (the NPC) and Player
             glm::ivec3 currCell = glm::ivec3(glm::floor(m_position));
             glm::ivec3 currCellPlayer = glm::ivec3(glm::floor(m_player.m_position));
-            glm::ivec3 offset = glm::ivec3(maxDist, 0, maxDist) - glm::ivec3(currCell.x, 0, currCell.z);
 
-            //1. Create a 2D array that is (maxDist * 2 + 1) x (maxDist * 2 + 1) large from mob position, set all initial values as -1
-            float graph[maxDist * 2 + 1][maxDist * 2 + 1];
-            glm::ivec2 prev[maxDist * 2 + 1][maxDist * 2 + 1];
+//            std::unordered_map<glm::ivec3, glm::ivec3> came_from;
+//            std::map<std::pair<glm::ivec3, int> cost_so_far;
+////            std::map<std::pair<std::pair<int,int>, int>, int> cost_so_far;
 
-            for (int i = 0; i < maxDist * 2 + 1; i++) {
-                for (int j = 0; j < maxDist * 2 + 1; j++) {
-                    graph[i][j] = -1.f;
-                    prev[i][j] = glm::ivec2(-1, -1);
-                }
-            }
 
-            //2. Set the center of our grid to be 0
-            graph[maxDist][maxDist] = 0;
+//            //2. Set the center of our grid to be 0
+//            came_from[currCell] = currCell;
+//            cost_so_far[currCell] = 0;
 
-            //3. Perform BFS on this 2D array with specific cases to handle 3Dimensional traversal
-            std::queue<glm::ivec3> q;
-            //Add our center to the queue to begin BFS
-            q.push(glm::ivec3(maxDist, currCell.y, maxDist));
+//            //3. Perform A* on this 2D array with specific cases to handle 3Dimensional traversal
+//            std::priority_queue<std::pair<glm::ivec3, int>> pq;
+//            pq.push(std::make_pair(currCell, 0));
 
-            while (!q.empty()) {
-                glm::ivec3 cur = q.front();
-                q.pop();
-                //Check direct neighbors in 4 directions of current block, North, East, South, West:
-                for (int i = 0; i < 4; i++) {
-                    glm::ivec3 neighbor = cur + surroundingGrid[i]; //neighbor in 3D space (x, z relative to grid, y in world space)
-                    //Check if the neighbor is in bounds of our 2d array
-                    if (neighbor.x >= 0 && neighbor.x <= maxDist * 2 && neighbor.z >= 0 && neighbor.z <= maxDist * 2) {
-                        //Check if the neighboring x, z coordinate has already been recorded as impossible to reach
-                        if (graph[neighbor.x][neighbor.z] != -2) {
-                            //If not, then we can now check whether there exists a valid block at this grid, and if there is
-                            //not any such block, we will replace graph[neighbor.x][neighbor.z] with -2
+//            while (!pq.empty()) {
+//                glm::ivec3 cur = pq.top().first;
+//                int curCost = pq.top().second;
+//                pq.pop();
 
-                            glm::vec3 worldNeighborF = glm::vec3(neighbor - offset);
-                            //Casework:
+//                if (cur == currCellPlayer) {
+//                    break;
+//                }
 
-                            //CASE 1: FLAT - y is unchanged
-                            if (mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y, worldNeighborF.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y + 1, worldNeighborF.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y - 1, worldNeighborF.z) != EMPTY) {
-                                if (graph[neighbor.x][neighbor.z] == -1) {
-                                    q.push(neighbor);
-                                    graph[neighbor.x][neighbor.z] = graph[cur.x][cur.z] + 1;
-                                    //Update prev
-                                    prev[neighbor.x][neighbor.z] = glm::vec2(cur.x, cur.z);
-                                } else if (graph[neighbor.x][neighbor.z] > graph[cur.x][cur.z] + 1){
-                                    q.push(neighbor);
-                                    graph[neighbor.x][neighbor.z] = graph[cur.x][cur.z] + 1;
-                                    //Update prev
-                                    prev[neighbor.x][neighbor.z] = glm::vec2(cur.x, cur.z);
-                                }
-                            }
-                            //Case 2: UP HILL - change in y is +1
-                            else if (mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y, worldNeighborF.z) != EMPTY
-                                    && mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y + 1, worldNeighborF.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y + 2, worldNeighborF.z) == EMPTY) {
-                                if (graph[neighbor.x][neighbor.z] == -1) {
-                                    q.push(glm::ivec3(neighbor.x, neighbor.y + 1, neighbor.z));
-                                    graph[neighbor.x][neighbor.z] = graph[cur.x][cur.z] + 1;
-                                    //Update prev
-                                    prev[neighbor.x][neighbor.z] = glm::vec2(cur.x, cur.z);
-                                } else if (graph[neighbor.x][neighbor.z] > graph[cur.x][cur.z] + 1){
-                                    q.push(neighbor);
-                                    graph[neighbor.x][neighbor.z] = graph[cur.x][cur.z] + 1;
-                                    //Update prev
-                                    prev[neighbor.x][neighbor.z] = glm::vec2(cur.x, cur.z);
-                                }
-                            }
-                            //Case 3: DOWN HILL - change in y is -1
-                            else if (mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y, worldNeighborF.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y - 1, worldNeighborF.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(worldNeighborF.x, worldNeighborF.y - 2, worldNeighborF.z) != EMPTY) {
-                                if (graph[neighbor.x][neighbor.z] == -1) {
-                                    q.push(glm::ivec3(neighbor.x, neighbor.y - 1, neighbor.z));
-                                    graph[neighbor.x][neighbor.z] = graph[cur.x][cur.z] + 1;
-                                    //Update prev
-                                    prev[neighbor.x][neighbor.z] = glm::vec2(cur.x, cur.z);
-                                } else if (graph[neighbor.x][neighbor.z] > graph[cur.x][cur.z] + 1){
-                                    q.push(neighbor);
-                                    graph[neighbor.x][neighbor.z] = graph[cur.x][cur.z] + 1;
-                                    //Update prev
-                                    prev[neighbor.x][neighbor.z] = glm::vec2(cur.x, cur.z);
-                                }
-                            }
-                            else {
-                                //Case 4: Unreachable
-                                graph[neighbor.x][neighbor.z] = -2;
-                            }
-                        }
-                    }
-                }
-            }
+//                //Check direct neighbors in 4 directions of current block, North, East, South, West:
+//                for (int i = 0; i < 4; i++) {
+//                    glm::ivec3 neighbor = cur + surroundingGrid[i]; //neighbor in 3D space (x, z relative to grid, y in world space)
 
-            //Now, since we have our finished weighted grid, we can make a path between the NPC and the player if
-            //prev[playerPos] is not null, i.e. graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1
+//                    //Check if the neighbor is in bounds of our 2d array
+//                    if (std::abs(neighbor.x - currCell.x) <= maxDist * 2 &&
+//                            std::abs(neighbor.y - currCell.y) <= maxDist * 2 &&
+//                            std::abs(neighbor.z - currCell.z) <= maxDist * 2) {
+//                        //Casework:
+//                        //CASE 1: FLAT - y is unchanged
+//                        if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
+//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
+//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) != EMPTY) {
+//                            int new_cost = cost_so_far[cur] + 1;
+//                            if (cost_so_far.find(neighbor) == cost_so_far.end() || new_cost < cost_so_far[neighbor]) {
+//                                cost_so_far[neighbor] = new_cost;
+//                                int priority = new_cost + heuristic(neighbor, currCellPlayer);
+//                                pq.push(std::make_pair(neighbor, priority));
+//                                came_from[neighbor] = cur;
+//                            }
+//                        }
+//                        //Case 2: UP HILL - change in y is +1
+//                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) != EMPTY
+//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
+//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 2, neighbor.z) == EMPTY) {
+//                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y + 1, neighbor.z);
+//                            int new_cost = cost_so_far[cur] + 1;
+//                            if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next]) {
+//                                cost_so_far[next] = new_cost;
+//                                int priority = new_cost + heuristic(next, currCellPlayer);
+//                                pq.push(std::make_pair(next, priority));
+//                                came_from[next] = cur;
+//                            }
+//                        }
+//                        //Case 3: DOWN HILL - change in y is -1
+//                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
+//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) == EMPTY
+//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 2, neighbor.z) != EMPTY) {
+//                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y - 1, neighbor.z);
+//                            int new_cost = cost_so_far[cur] + 1;
+//                            if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next]) {
+//                                cost_so_far[next] = new_cost;
+//                                int priority = new_cost + heuristic(next, currCellPlayer);
+//                                pq.push(std::make_pair(next, priority));
+//                                came_from[next] = cur;
+//                            }
+//                        }
+//                        else {
+//                            //Case 4: Unreachable
+//                            //Do nothing.
+//                        }
+//                    }
+//                }
+//            }
 
-            if (graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1) {
-                //Replace old path with new path:
-                path.clear();
-                glm::ivec2 cur = glm::ivec2(currCellPlayer.x - currCell.x + maxDist, currCellPlayer.z - currCell.z + maxDist);
-                if (prev[cur.x][cur.y] != glm::ivec2(-1, -1)) {
-                    cur = prev[cur.x][cur.y];
-                }
-                while (prev[cur.x][cur.y] != glm::ivec2(-1, -1)) {
-                    glm::ivec2 diff = cur - prev[cur.x][cur.y];
-                    if (diff == glm::ivec2(0, 1)) {
-                        path.push_front(FORWARDS);
-                    }
-                    else if (diff == glm::ivec2(1, 0)) {
-                        path.push_front(LEFT);
-                    }
-                    else if (diff == glm::ivec2(0, -1)) {
-                        path.push_front(BACKWARDS);
-                    }
-                    else if (diff == glm::ivec2(-1, 0)) {
-                        path.push_front(RIGHT);
-                    }
-                    cur = prev[cur.x][cur.y];
-                }
-            }
+//            //Now, since we have our finished weighted grid, we can make a path between the NPC and the player if
+//            //prev[playerPos] is not null, i.e. graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1
+//            if (came_from.find(currCellPlayer) != came_from.end()) {
+//                //Replace old path with new path:
+//                path.clear();
+//                glm::ivec3 cur = came_from[currCellPlayer];
+
+//                while (came_from.find(cur) != came_from.end()) {
+//                    glm::ivec2 diff = glm::ivec2(cur.x, cur.z) - glm::ivec2(came_from[cur].x, came_from[cur].z);
+//                    if (diff == glm::ivec2(0, 1)) {
+//                        path.push_front(FORWARDS);
+//                    }
+//                    else if (diff == glm::ivec2(1, 0)) {
+//                        path.push_front(LEFT);
+//                    }
+//                    else if (diff == glm::ivec2(0, -1)) {
+//                        path.push_front(BACKWARDS);
+//                    }
+//                    else if (diff == glm::ivec2(-1, 0)) {
+//                        path.push_front(RIGHT);
+//                    }
+//                    cur = came_from[cur];
+//                }
+//            }
         }
     }
 
@@ -235,7 +225,6 @@ void Bear::processInputsNPC() {
             pathFinder = false;
         }
     }
-
     m_acceleration *= scalarMultiplier;
     float gravity = -14.0f;
     m_acceleration.y = gravity;

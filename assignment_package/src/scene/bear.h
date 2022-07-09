@@ -9,6 +9,8 @@
 #include "scalenode.h"
 #include <queue>
 #include <deque>
+#include <unordered_map>
+#include <map>
 
 class Bear : public Entity {
 public:
