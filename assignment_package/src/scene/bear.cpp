@@ -47,7 +47,7 @@ const static glm::ivec3 surroundingGrid[4] = {
 };
 
 //maxDist: Visible range for Bear NPC to detect Player
-const int maxDist = 10;
+const int maxDist = 50;
 
 //inline double heuristic(GridLocation a, GridLocation b) {
 //  return std::abs(a.x - b.x) + std::abs(a.y - b.y);
@@ -80,8 +80,6 @@ inline bool Compare(std::pair<int, std::pair<std::pair<int,int>, int>> a, std::p
     CORAL_PURPLE, CORAL_ORANGE
 };
 
-
-
 WOOD for discovering
 SNOW for processing
 GRASS for path
@@ -89,200 +87,165 @@ LEAF for goal
 */
 void Bear::processInputsNPC() {
     playerDir = m_player.m_position - m_position;
+    if (!pathFinder && glm::length(playerDir) <= 6.f) {
+        float yAngle = glm::orientedAngle(m_forward, glm::normalize(playerDir),  m_right);
+        rotateOnRightLocal(yAngle * 180.f / M_PI);
+
+        float xzAngle = glm::orientedAngle(glm::vec3(m_forward.x, 0.f, m_forward.z), glm::normalize(glm::vec3(playerDir.x, 0.f, playerDir.z)),
+                                           glm::vec3(0.f, 1.f, 0.f));
+        rotateOnUpGlobal(xzAngle * 180.f / M_PI);
+    }
 
     //Check to see if Player is within visible range of NPC
     if (glm::length(playerDir) >= 1.f && glm::length(playerDir) <= maxDist) {
-        if (glm::length(playerDir) <= 2.f) {
-//            Rotate NPC's torso and head towards Player
-            float xzAngle = glm::orientedAngle(glm::vec3(m_forward.x, 0.f, m_forward.z), glm::normalize(glm::vec3(playerDir.x, 0.f, playerDir.z)),
-                                               glm::vec3(0.f, 1.f, 0.f));
-            rotateOnUpGlobal(xzAngle * 180.f / M_PI);
-            float yAngle = glm::orientedAngle(m_forward, glm::normalize(playerDir),  m_right);
-            rotateOnRightLocal(yAngle * 180.f / M_PI);
-        }
-
         //BFS NPC AI Player Pathfinder:
         if (pathFinder && path.empty()) {
-            //0. Find block positions of us (the NPC) and Player
             glm::ivec3 currCell = glm::ivec3(glm::floor(m_position));
             glm::ivec3 currCellPlayer = glm::ivec3(glm::floor(m_player.m_position));
 
-            if (currCell != currCellPlayer) {
+            ////Visualize
+            mcr_terrain.setBlockAt(currCellPlayer.x, currCellPlayer.y - 1, currCellPlayer.z, BlockType::ICE);
+            Chunk* c1 = mcr_terrain.getChunkAt(currCellPlayer.x, currCellPlayer.z).get();
+
+            mcr_terrain.appendEditedChunk(c1);
+            ////
+
+            std::map<std::pair<std::pair<int,int>, int>, std::pair<std::pair<int,int>, int>> came_from;
+            std::map<std::pair<std::pair<int,int>, int>, int> cost_so_far;
+
+            //2. Set the center of our grid to be 0
+            came_from[convertToKey(currCell)] = convertToKey(currCell);
+            cost_so_far[convertToKey(currCell)] = 0;
+
+            std::priority_queue<std::pair<int, std::pair<std::pair<int,int>, int>>,
+                    std::vector<std::pair<int, std::pair<std::pair<int,int>, int>>>,
+                    std::function<bool(std::pair<int, std::pair<std::pair<int,int>, int>>,
+                                       std::pair<int, std::pair<std::pair<int,int>, int>>)>> pq(Compare);
+            pq.push(std::make_pair(0, convertToKey(currCell)));
+
+            while (!pq.empty()) {
+                std::pair<std::pair<int,int>, int> cur = pq.top().second;
+                pq.pop();
+
+                if (cur == convertToKey(currCellPlayer)) {
+                    break;
+                }
 
                 ////Visualize
-                mcr_terrain.setBlockAt(currCellPlayer.x, currCellPlayer.y - 1, currCellPlayer.z, BlockType::LEAF);
+                mcr_terrain.setBlockAt(cur.first.first, cur.first.second - 1, cur.second, BlockType::SNOW);
+                Chunk* c2 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                mcr_terrain.appendEditedChunk(c2);
+                ////
+
+                //Check direct neighbors in 4 directions of current block, North, East, South, West:
+                for (int i = 0; i < 4; i++) {
+                    glm::ivec3 neighbor = convertToVec(cur) + surroundingGrid[i]; //neighbor in 3D space (x, z relative to grid, y in world space)
+                    //Check if the neighbor is in bounds of our 2d array
+                    if (std::abs(neighbor.x - currCell.x) <= maxDist * 2 &&
+                            std::abs(neighbor.y - currCell.y) <= maxDist * 2 &&
+                            std::abs(neighbor.z - currCell.z) <= maxDist * 2) {
+                        //Casework:
+                        //CASE 1: FLAT - y is unchanged
+                        if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) != EMPTY) {
+                            glm::ivec3 next = neighbor;
+                            int new_cost = cost_so_far[cur] + 1;
+                            if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
+                                cost_so_far[convertToKey(next)] = new_cost;
+                                int priority = new_cost + heuristic(next, currCellPlayer);
+
+                                pq.push(std::make_pair(priority, convertToKey(next)));
+                                came_from[convertToKey(next)] = cur;
+                                ////Visualize
+                                mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
+                                Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                                mcr_terrain.appendEditedChunk(c3);
+                                ////
+                            }
+                        }
+                        //Case 2: UP HILL - change in y is +1
+                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) != EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 2, neighbor.z) == EMPTY) {
+
+                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y + 1, neighbor.z);
+                            int new_cost = cost_so_far[cur] + 1;
+                            if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
+                                cost_so_far[convertToKey(next)] = new_cost;
+                                int priority = new_cost + heuristic(next, currCellPlayer);
+                                pq.push(std::make_pair(priority, convertToKey(next)));
+                                came_from[convertToKey(next)] = cur;
+                                ////Visualize
+                                mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
+                                Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                                mcr_terrain.appendEditedChunk(c3);
+                                ////
+                            }
+                        }
+                        //Case 3: DOWN HILL - change in y is -1
+                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 2, neighbor.z) != EMPTY) {
+                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y - 1, neighbor.z);
+                            int new_cost = cost_so_far[cur] + 1;
+                            if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
+                                cost_so_far[convertToKey(next)] = new_cost;
+                                int priority = new_cost + heuristic(next, currCellPlayer);
+                                pq.push(std::make_pair(priority, convertToKey(next)));
+                                came_from[convertToKey(next)] = cur;
+                                ////Visualize
+                                mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
+                                Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                                mcr_terrain.appendEditedChunk(c3);
+                                ////
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (came_from.find(convertToKey(currCellPlayer)) != came_from.end()) {
+                //Replace old path with new path:
+                path.clear();
+                std::pair<std::pair<int,int>, int> cur = came_from[convertToKey(currCellPlayer)];
+                ////Visualize
+                mcr_terrain.setBlockAt(currCellPlayer.x, currCellPlayer.y - 1, currCellPlayer.z, BlockType::ICE);
                 Chunk* c1 = mcr_terrain.getChunkAt(currCellPlayer.x, currCellPlayer.z).get();
 
                 mcr_terrain.appendEditedChunk(c1);
-
-//                std::vector<Chunk*> toAdd1 = c1->checkFromNeighbor(glm::ivec3(currCellPlayer.x, currCellPlayer.y - 1, currCellPlayer.z));
-
-//                for (Chunk* chunk1 : toAdd1) {
-//                    mcr_terrain.appendEditedChunk(chunk1);
-//                }
                 ////
 
-
-                std::map<std::pair<std::pair<int,int>, int>, std::pair<std::pair<int,int>, int>> came_from;
-                std::map<std::pair<std::pair<int,int>, int>, int> cost_so_far;
-
-                //2. Set the center of our grid to be 0
-                came_from[convertToKey(currCell)] = convertToKey(currCell);
-                cost_so_far[convertToKey(currCell)] = 0;
-
-                std::priority_queue<std::pair<int, std::pair<std::pair<int,int>, int>>,
-                        std::vector<std::pair<int, std::pair<std::pair<int,int>, int>>>,
-                        std::function<bool(std::pair<int, std::pair<std::pair<int,int>, int>>,
-                                           std::pair<int, std::pair<std::pair<int,int>, int>>)>> pq(Compare);
-                pq.push(std::make_pair(0, convertToKey(currCell)));
-
-                while (!pq.empty()) {
-                    std::pair<std::pair<int,int>, int> cur = pq.top().second;
-                    pq.pop();
-
-                    if (cur == convertToKey(currCellPlayer)) {
-                        break;
-                    }
-
+                while (came_from[cur] != cur) {
                     ////Visualize
-                    mcr_terrain.setBlockAt(cur.first.first, cur.first.second - 1, cur.second, BlockType::SNOW);
-                    Chunk* c2 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+                    mcr_terrain.setBlockAt(cur.first.first, cur.first.second - 1, cur.second, BlockType::GRASS);
+                    Chunk* c4 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
 
-                    mcr_terrain.appendEditedChunk(c2);
-
-//                    std::vector<Chunk*> toAdd2 = c2->checkFromNeighbor(convertToVec(cur));
-
-//                    for (Chunk* chunk2 : toAdd2) {
-//                        mcr_terrain.appendEditedChunk(chunk2);
-//                    }
+                    mcr_terrain.appendEditedChunk(c4);
                     ////
-
-                    //Check direct neighbors in 4 directions of current block, North, East, South, West:
-                    for (int i = 0; i < 4; i++) {
-                        glm::ivec3 neighbor = convertToVec(cur) + surroundingGrid[i]; //neighbor in 3D space (x, z relative to grid, y in world space)
-                        //Check if the neighbor is in bounds of our 2d array
-                        if (std::abs(neighbor.x - currCell.x) <= maxDist * 2 &&
-                                std::abs(neighbor.y - currCell.y) <= maxDist * 2 &&
-                                std::abs(neighbor.z - currCell.z) <= maxDist * 2) {
-                            //Casework:
-                            //CASE 1: FLAT - y is unchanged
-                            if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) != EMPTY) {
-                                glm::ivec3 next = neighbor;
-                                int new_cost = cost_so_far[cur] + 1;
-                                if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
-                                    cost_so_far[convertToKey(next)] = new_cost;
-                                    int priority = new_cost + heuristic(next, currCellPlayer);
-
-                                    pq.push(std::make_pair(priority, convertToKey(next)));
-                                    came_from[convertToKey(next)] = cur;
-                                    ////Visualize
-                                    mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
-                                    Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
-
-                                    mcr_terrain.appendEditedChunk(c3);
-
-//                                    std::vector<Chunk*> toAdd3 = c3->checkFromNeighbor(convertToVec(cur));
-
-//                                    for (Chunk* chunk3 : toAdd3) {
-//                                        mcr_terrain.appendEditedChunk(chunk3);
-//                                    }
-                                    ////
-                                }
-                            }
-                            //Case 2: UP HILL - change in y is +1
-                            else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) != EMPTY
-                                    && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 2, neighbor.z) == EMPTY) {
-
-                                glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y + 1, neighbor.z);
-                                int new_cost = cost_so_far[cur] + 1;
-                                if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
-                                    cost_so_far[convertToKey(next)] = new_cost;
-                                    int priority = new_cost + heuristic(next, currCellPlayer);
-                                    pq.push(std::make_pair(priority, convertToKey(next)));
-                                    came_from[convertToKey(next)] = cur;
-                                    ////Visualize
-                                    mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
-                                    Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
-
-                                    mcr_terrain.appendEditedChunk(c3);
-
-//                                    std::vector<Chunk*> toAdd3 = c3->checkFromNeighbor(convertToVec(cur));
-
-//                                    for (Chunk* chunk3 : toAdd3) {
-//                                        mcr_terrain.appendEditedChunk(chunk3);
-//                                    }
-                                    ////
-                                }
-                            }
-                            //Case 3: DOWN HILL - change in y is -1
-                            else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) == EMPTY
-                                    && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 2, neighbor.z) != EMPTY) {
-                                glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y - 1, neighbor.z);
-                                int new_cost = cost_so_far[cur] + 1;
-                                if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
-                                    cost_so_far[convertToKey(next)] = new_cost;
-                                    int priority = new_cost + heuristic(next, currCellPlayer);
-                                    pq.push(std::make_pair(priority, convertToKey(next)));
-                                    came_from[convertToKey(next)] = cur;
-                                    ////Visualize
-                                    mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
-                                    Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
-
-                                    mcr_terrain.appendEditedChunk(c3);
-
-//                                    std::vector<Chunk*> toAdd3 = c3->checkFromNeighbor(convertToVec(cur));
-
-//                                    for (Chunk* chunk3 : toAdd3) {
-//                                        mcr_terrain.appendEditedChunk(chunk3);
-//                                    }
-                                    ////
-                                }
-                            }
-                        }
+                    glm::ivec2 diff = glm::ivec2(cur.first.first, cur.second) - glm::ivec2(came_from[cur].first.first, came_from[cur].second);
+                    if (diff == glm::ivec2(0, 1)) {
+                        path.push_front(FORWARDS);
                     }
-                }
-
-                if (came_from.find(convertToKey(currCellPlayer)) != came_from.end()) {
-                    //Replace old path with new path:
-                    path.clear();
-                    std::pair<std::pair<int,int>, int> cur = came_from[convertToKey(currCellPlayer)];
-
-                    while (came_from[cur] != cur) {
-                        ////Visualize
-                        mcr_terrain.setBlockAt(cur.first.first, cur.first.second - 1, cur.second, BlockType::GRASS);
-                        Chunk* c4 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
-
-                        mcr_terrain.appendEditedChunk(c4);
-
-//                        std::vector<Chunk*> toAdd4 = c4->checkFromNeighbor(convertToVec(cur));
-
-//                        for (Chunk* chunk4 : toAdd4) {
-//                            mcr_terrain.appendEditedChunk(chunk4);
-//                        }
-                        ////
-                        glm::ivec2 diff = glm::ivec2(cur.first.first, cur.second) - glm::ivec2(came_from[cur].first.first, came_from[cur].second);
-                        if (diff == glm::ivec2(0, 1)) {
-                            path.push_front(FORWARDS);
-                        }
-                        else if (diff == glm::ivec2(1, 0)) {
-                            path.push_front(LEFT);
-                        }
-                        else if (diff == glm::ivec2(0, -1)) {
-                            path.push_front(BACKWARDS);
-                        }
-                        else if (diff == glm::ivec2(-1, 0)) {
-                            path.push_front(RIGHT);
-                        }
-                        cur = came_from[cur];
+                    else if (diff == glm::ivec2(1, 0)) {
+                        path.push_front(LEFT);
                     }
-                } else {
-                    pathFinder = false;
+                    else if (diff == glm::ivec2(0, -1)) {
+                        path.push_front(BACKWARDS);
+                    }
+                    else if (diff == glm::ivec2(-1, 0)) {
+                        path.push_front(RIGHT);
+                    }
+                    cur = came_from[cur];
                 }
+            } else {
+                pathFinder = false;
             }
+
         }
     }
 
@@ -307,8 +270,10 @@ void Bear::processInputsNPC() {
                 rotateOnUpGlobal((potentialAngle * 180.f / M_PI) * turnDrag);
             }
             m_acceleration.z = bearAcceleration;
-            if (std::abs(prevPos.z + 1.5 - m_position.z) <= threshold) {
-                prevPos = glm::ivec3(glm::floor(m_position));
+            if (std::abs(prevPos.z + 1.5f - m_position.z) <= threshold) {
+//                prevPos = glm::ivec3(glm::floor(m_position));
+                prevPos.z++;
+                prevPos.y = glm::floor(m_position).y;
                 path.pop_front();
             }
             break;
@@ -321,8 +286,10 @@ void Bear::processInputsNPC() {
                 rotateOnUpGlobal((potentialAngle * 180.f / M_PI) * turnDrag);
             }
             m_acceleration.z = -bearAcceleration;
-            if (std::abs(m_position.z - (prevPos.z - 0.5)) <= threshold) {
-                prevPos = glm::ivec3(glm::floor(m_position));
+            if (std::abs(m_position.z - (prevPos.z - 0.5f)) <= threshold) {
+//                prevPos = glm::ivec3(glm::floor(m_position));
+                prevPos.z--;
+                prevPos.y = glm::floor(m_position).y;
                 path.pop_front();
             }
             break;
@@ -335,8 +302,10 @@ void Bear::processInputsNPC() {
                 rotateOnUpGlobal((potentialAngle * 180.f / M_PI) * turnDrag);
             }
             m_acceleration.x = bearAcceleration;
-            if (std::abs(prevPos.x + 1.5 - m_position.x) <= threshold) {
-                prevPos = glm::ivec3(glm::floor(m_position));
+            if (std::abs(prevPos.x + 1.5f - m_position.x) <= threshold) {
+//                prevPos = glm::ivec3(glm::floor(m_position));
+                prevPos.x++;
+                prevPos.y = glm::floor(m_position).y;
                 path.pop_front();
             }
             break;
@@ -349,8 +318,10 @@ void Bear::processInputsNPC() {
                 rotateOnUpGlobal((potentialAngle * 180.f / M_PI) * turnDrag);
             }
             m_acceleration.x = -bearAcceleration;
-            if (std::abs(m_position.x - (prevPos.x - 0.5)) <= threshold) {
-                prevPos = glm::ivec3(glm::floor(m_position));
+            if (std::abs(m_position.x - (prevPos.x - 0.5f)) <= threshold) {
+//                prevPos = glm::ivec3(glm::floor(m_position));
+                prevPos.x--;
+                prevPos.y = glm::floor(m_position).y;
                 path.pop_front();
             }
             break;
@@ -422,7 +393,7 @@ void Bear::computePhysics(float dT, Terrain &terrain) {
     //Friction:
     float friction;
 
-    friction = 0.90f;
+    friction = 0.86f;
     m_velocity.x *= friction;
     m_velocity.z *= friction;
 
@@ -831,21 +802,17 @@ void Bear::physicsCollisions(glm::vec3 &rayDir, const Terrain &terrain) {
     if (minOutDistX < std::numeric_limits<float>::infinity()) {
         if (minOutDistX < epsilon) {
             rayDir.x = 0.f;
-//                Allow to jump over block of height unit 1
+
             if (terrain.getBlockAt(closestOut_BlockHitX.x, closestOut_BlockHitX.y + 1, closestOut_BlockHitX.z) == BlockType::EMPTY
                     && jumpReady && glm::abs(m_velocity.x) > autoJumpThreshold) {
-                if (prevAutoJumpBlock == glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z)) {
-                    //compare center of block to bear's position, then determine whether we need to move left or right
-                    //clearly, we are jumping in the +z direction in this case, therefore, we will adjust either +- x
-//                    float diff = closestOut_BlockHitZ.x + 0.5 - m_position.x;
-//                    std::cout << "Yo! x repeat\n";
-                    if (closestOut_BlockHitZ.z + 0.5 - m_position.z > 0) {
+                if (prevAutoJumpBlock == glm::ivec3(closestOut_BlockHitX.x, closestOut_BlockHitX.y + 1, closestOut_BlockHitX.z)) {
+                    if (closestOut_BlockHitX.z + 0.5 - m_position.z > 0) {
                         m_velocity.z = -0.2f;
                     } else {
                         m_velocity.z = 0.2f;
                     }
                 }
-                prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitZ.x, closestOut_BlockHitZ.y + 1, closestOut_BlockHitZ.z);
+                prevAutoJumpBlock = glm::ivec3(closestOut_BlockHitX.x, closestOut_BlockHitX.y + 1, closestOut_BlockHitX.z);
                 m_velocity.y = 6.0f;
                 jumpReady = false;
             }

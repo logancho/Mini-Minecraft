@@ -357,35 +357,62 @@ void Terrain::create(glm::ivec2 curr_zone)
     placeBlock(ref, -1, 7, 2, BEDROCK);
     placeBlock(ref, -1, 7, 1, BEDROCK);
     placeBlock(ref, -1, 7, 0, BEDROCK);
+
     placeBlock(ref, -1, 7, -1, BEDROCK);
-//    placeBlock(ref, 0, 0, 0, GRASS);
-//    placeBlock(ref, -1, 0, 0, GRASS);
-//    placeBlock(ref, -2, 0, 0, GRASS);
-//    placeBlock(ref, 0, 0, -1, GRASS);
-//    placeBlock(ref, -1, 0, -1, GRASS);
-//    placeBlock(ref, -2, 0, -1, GRASS);
-//    placeBlock(ref, 0, 0, -2, SNOW);
-//    placeBlock(ref, -1, 0, -2, SNOW);
-//    placeBlock(ref, -2, 0, -2, SNOW);
+    placeBlock(ref, -2, 7, -1, BEDROCK);
+    placeBlock(ref, -3, 7, -1, BEDROCK);
+    placeBlock(ref, -4, 7, -1, BEDROCK);
+    placeBlock(ref, -5, 7, -1, BEDROCK);
+    placeBlock(ref, -6, 7, -1, BEDROCK);
+    placeBlock(ref, -7, 7, -1, BEDROCK);
+    placeBlock(ref, -8, 7, -1, BEDROCK);
+    placeBlock(ref, -9, 7, -1, BEDROCK);
+    placeBlock(ref, -10, 7, -1, BEDROCK);
 
-//    placeBlock(ref, -1, 1, -3, WOOD);
-//    placeBlock(ref, -1, 2, -4, WOOD);
-//    placeBlock(ref, 0, 3, -4, WOOD);
-//    placeBlock(ref, 1, 4, -4, WOOD);
-//    placeBlock(ref, 2, 5, -4, WOOD);
-//    placeBlock(ref, 2, 6, -3, WOOD);
-//    placeBlock(ref, 2, 7, -2, WOOD);
-//    placeBlock(ref, 2, 7, -1, WOOD);
-//    placeBlock(ref, 2, 7, 0, WOOD);
-//    placeBlock(ref, 2, 7, 1, WOOD);
-//    placeBlock(ref, 2, 7, 2, WOOD);
-//    placeBlock(ref, 1, 7, 2, WOOD);
+    placeBlock(ref, -1, 7, -2, BEDROCK);
+    placeBlock(ref, -2, 7, -2, BEDROCK);
+    placeBlock(ref, -3, 7, -2, BEDROCK);
+    placeBlock(ref, -4, 7, -2, BEDROCK);
+    placeBlock(ref, -5, 7, -2, BEDROCK);
+    placeBlock(ref, -6, 7, -2, BEDROCK);
+    placeBlock(ref, -7, 7, -2, BEDROCK);
+    placeBlock(ref, -8, 7, -2, BEDROCK);
+    placeBlock(ref, -9, 7, -2, BEDROCK);
+    placeBlock(ref, -10, 7, -2, BEDROCK);
 
-//    placeBlock(ref, 0, 7, 2, ICE);
-//    placeBlock(ref, -1, 7, 2, ICE);
-//    placeBlock(ref, -1, 7, 1, ICE);
-//    placeBlock(ref, -1, 7, 0, ICE);
-//    placeBlock(ref, -1, 7, -1, ICE);
+    placeBlock(ref, -1, 8, -3, BEDROCK);
+    placeBlock(ref, -2, 8, -3, BEDROCK);
+    placeBlock(ref, -3, 8, -3, BEDROCK);
+    placeBlock(ref, -4, 8, -3, BEDROCK);
+    placeBlock(ref, -5, 8, -3, BEDROCK);
+    placeBlock(ref, -6, 8, -3, BEDROCK);
+    placeBlock(ref, -7, 8, -3, BEDROCK);
+    placeBlock(ref, -8, 8, -3, BEDROCK);
+    placeBlock(ref, -9, 8, -3, BEDROCK);
+    placeBlock(ref, -10, 8, -3, BEDROCK);
+
+    placeBlock(ref, -1, 8, -4, BEDROCK);
+    placeBlock(ref, -2, 8, -4, BEDROCK);
+    placeBlock(ref, -3, 8, -4, BEDROCK);
+    placeBlock(ref, -4, 8, -4, BEDROCK);
+    placeBlock(ref, -5, 8, -4, BEDROCK);
+    placeBlock(ref, -6, 8, -4, BEDROCK);
+    placeBlock(ref, -7, 8, -4, BEDROCK);
+    placeBlock(ref, -8, 8, -4, BEDROCK);
+    placeBlock(ref, -9, 8, -4, BEDROCK);
+    placeBlock(ref, -10, 8, -4, BEDROCK);
+
+    placeBlock(ref, -1, 8, -5, BEDROCK);
+    placeBlock(ref, -2, 8, -5, BEDROCK);
+    placeBlock(ref, -3, 8, -5, BEDROCK);
+    placeBlock(ref, -4, 8, -5, BEDROCK);
+    placeBlock(ref, -5, 8, -5, BEDROCK);
+    placeBlock(ref, -6, 8, -5, BEDROCK);
+    placeBlock(ref, -7, 8, -5, BEDROCK);
+    placeBlock(ref, -8, 8, -5, BEDROCK);
+    placeBlock(ref, -9, 8, -5, BEDROCK);
+    placeBlock(ref, -10, 8, -5, BEDROCK);
+
     ////CUSTOM MAP////
 }
 /*
