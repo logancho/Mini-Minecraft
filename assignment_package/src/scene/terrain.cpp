@@ -354,6 +354,10 @@ void Terrain::create(glm::ivec2 curr_zone)
     placeBlock(ref, 1, 2, 2, WOOD);
 
     placeBlock(ref, 0, 2, 2, ICE);
+    placeBlock(ref, -1, 3, 2, ICE);
+    placeBlock(ref, -1, 4, 1, ICE);
+    placeBlock(ref, -1, 5, 0, ICE);
+    placeBlock(ref, -1, 6, -1, ICE);
     ////CUSTOM MAP////
 }
 /*
