@@ -47,7 +47,7 @@ const static glm::ivec3 surroundingGrid[4] = {
 };
 
 //maxDist: Visible range for Bear NPC to detect Player
-const int maxDist = 20;
+const int maxDist = 10;
 
 //inline double heuristic(GridLocation a, GridLocation b) {
 //  return std::abs(a.x - b.x) + std::abs(a.y - b.y);
@@ -55,6 +55,19 @@ const int maxDist = 20;
 
 inline int heuristic(glm::ivec3 a, glm::ivec3 b) {
     return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z);
+}
+
+inline std::pair<std::pair<int,int>, int> convertToKey(glm::ivec3 input) {
+    return std::make_pair(std::make_pair(input.x, input.y), input.z);
+}
+
+inline glm::ivec3 convertToVec(std::pair<std::pair<int,int>, int> input) {
+//    return std::make_pair(std::make_pair(input.x, input.y), input.z);
+    return glm::ivec3(input.first.first, input.first.second, input.second);
+}
+
+inline bool Compare(std::pair<int, std::pair<std::pair<int,int>, int>> a, std::pair<int, std::pair<std::pair<int,int>, int>> b) {
+    return a.first > b.first;
 }
 
 void Bear::processInputsNPC() {
@@ -71,97 +84,135 @@ void Bear::processInputsNPC() {
 
         //BFS NPC AI Player Pathfinder:
         if (pathFinder && path.empty()) {
+            std::cout << "pathFinder has been initiated\n";
             ///////////
             //0. Find block positions of us (the NPC) and Player
             glm::ivec3 currCell = glm::ivec3(glm::floor(m_position));
+//            currCell.y--;
+            std::cout << "CurrCell of bear: " << glm::to_string(currCell) << std::endl;
             glm::ivec3 currCellPlayer = glm::ivec3(glm::floor(m_player.m_position));
+//            currCellPlayer.y--;
+            std::cout << "CurrCell of Player: " << glm::to_string(currCellPlayer) << std::endl;
 
-//            std::unordered_map<glm::ivec3, glm::ivec3> came_from;
-//            std::map<std::pair<glm::ivec3, int> cost_so_far;
-////            std::map<std::pair<std::pair<int,int>, int>, int> cost_so_far;
+            std::map<std::pair<std::pair<int,int>, int>, std::pair<std::pair<int,int>, int>> came_from;
+            std::map<std::pair<std::pair<int,int>, int>, int> cost_so_far;
 
+            //2. Set the center of our grid to be 0
+            came_from[convertToKey(currCell)] = convertToKey(currCell);
+            cost_so_far[convertToKey(currCell)] = 0;
 
-//            //2. Set the center of our grid to be 0
-//            came_from[currCell] = currCell;
-//            cost_so_far[currCell] = 0;
+            //3. Perform A* on this 2D array with specific cases to handle 3Dimensional traversal
 
-//            //3. Perform A* on this 2D array with specific cases to handle 3Dimensional traversal
-//            std::priority_queue<std::pair<glm::ivec3, int>> pq;
-//            pq.push(std::make_pair(currCell, 0));
+            std::priority_queue<std::pair<int, std::pair<std::pair<int,int>, int>>,
+                    std::vector<std::pair<int, std::pair<std::pair<int,int>, int>>>,
+                    std::function<bool(std::pair<int, std::pair<std::pair<int,int>, int>>,
+                                       std::pair<int, std::pair<std::pair<int,int>, int>>)>> pq(Compare);
+            pq.push(std::make_pair(0, convertToKey(currCell)));
 
-//            while (!pq.empty()) {
-//                glm::ivec3 cur = pq.top().first;
-//                int curCost = pq.top().second;
-//                pq.pop();
+            while (!pq.empty()) {
+                std::cout << "Running while loop\n";
+                std::pair<std::pair<int,int>, int> cur = pq.top().second;
+                int curCost = pq.top().first;
+                std::cout << "Cur block (x,y,z) = " << "(" << cur.first.first << ", " << cur.first.second << ", " << cur.second << ")\n";
+                std::cout << "Cur priority: " << curCost << "\n";
+                pq.pop();
 
-//                if (cur == currCellPlayer) {
-//                    break;
-//                }
+                if (cur == convertToKey(currCellPlayer)) {
+                    std::cout << "reached target, break\n";
+                    break;
+                }
 
-//                //Check direct neighbors in 4 directions of current block, North, East, South, West:
-//                for (int i = 0; i < 4; i++) {
-//                    glm::ivec3 neighbor = cur + surroundingGrid[i]; //neighbor in 3D space (x, z relative to grid, y in world space)
+                std::cout << "Checking all neighbours\n";
+                //Check direct neighbors in 4 directions of current block, North, East, South, West:
+                for (int i = 0; i < 4; i++) {
+                    glm::ivec3 neighbor = convertToVec(cur) + surroundingGrid[i]; //neighbor in 3D space (x, z relative to grid, y in world space)
+                    //Check if the neighbor is in bounds of our 2d array
+                    if (std::abs(neighbor.x - currCell.x) <= maxDist * 2 &&
+                            std::abs(neighbor.y - currCell.y) <= maxDist * 2 &&
+                            std::abs(neighbor.z - currCell.z) <= maxDist * 2) {
+                        std::cout << "neighbor is within bounds\n";
+                        //Casework:
+                        //CASE 1: FLAT - y is unchanged
+                        if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) != EMPTY) {
+                            std::cout <<"neighbor: " << glm::to_string(neighbor) << std::endl;
+                            int new_cost = cost_so_far[cur] + 1;
+                            std::cout <<"new cost for neighbor from cur is: " << new_cost << std::endl;
+                            if (cost_so_far.find(convertToKey(neighbor)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(neighbor)]) {
+                                cost_so_far[convertToKey(neighbor)] = new_cost;
+                                int priority = new_cost + heuristic(neighbor, currCellPlayer);
+                                std::cout << "Case 1:\n";
+                                std::cout << "Priority: " << priority << "\n";
+                                pq.push(std::make_pair(priority, convertToKey(neighbor)));
+                                came_from[convertToKey(neighbor)] = cur;
+                            } else {
+                                std::cout << "Cost so far for neighbor is: " << cost_so_far[convertToKey(neighbor)] << std::endl;
+                                std::cout << "bruh case 1\n";
+                            }
+                        }
+                        //Case 2: UP HILL - change in y is +1
+                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) != EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 2, neighbor.z) == EMPTY) {
 
-//                    //Check if the neighbor is in bounds of our 2d array
-//                    if (std::abs(neighbor.x - currCell.x) <= maxDist * 2 &&
-//                            std::abs(neighbor.y - currCell.y) <= maxDist * 2 &&
-//                            std::abs(neighbor.z - currCell.z) <= maxDist * 2) {
-//                        //Casework:
-//                        //CASE 1: FLAT - y is unchanged
-//                        if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
-//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
-//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) != EMPTY) {
-//                            int new_cost = cost_so_far[cur] + 1;
-//                            if (cost_so_far.find(neighbor) == cost_so_far.end() || new_cost < cost_so_far[neighbor]) {
-//                                cost_so_far[neighbor] = new_cost;
-//                                int priority = new_cost + heuristic(neighbor, currCellPlayer);
-//                                pq.push(std::make_pair(neighbor, priority));
-//                                came_from[neighbor] = cur;
-//                            }
-//                        }
-//                        //Case 2: UP HILL - change in y is +1
-//                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) != EMPTY
-//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 1, neighbor.z) == EMPTY
-//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y + 2, neighbor.z) == EMPTY) {
-//                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y + 1, neighbor.z);
-//                            int new_cost = cost_so_far[cur] + 1;
-//                            if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next]) {
-//                                cost_so_far[next] = new_cost;
-//                                int priority = new_cost + heuristic(next, currCellPlayer);
-//                                pq.push(std::make_pair(next, priority));
-//                                came_from[next] = cur;
-//                            }
-//                        }
-//                        //Case 3: DOWN HILL - change in y is -1
-//                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
-//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) == EMPTY
-//                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 2, neighbor.z) != EMPTY) {
-//                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y - 1, neighbor.z);
-//                            int new_cost = cost_so_far[cur] + 1;
-//                            if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next]) {
-//                                cost_so_far[next] = new_cost;
-//                                int priority = new_cost + heuristic(next, currCellPlayer);
-//                                pq.push(std::make_pair(next, priority));
-//                                came_from[next] = cur;
-//                            }
-//                        }
-//                        else {
-//                            //Case 4: Unreachable
-//                            //Do nothing.
-//                        }
-//                    }
-//                }
-//            }
+                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y + 1, neighbor.z);
+                            std::cout <<"neighbor: " << glm::to_string(next) << std::endl;
+                            int new_cost = cost_so_far[cur] + 1;
+                            std::cout <<"new cost for neighbor from cur is: " << new_cost << std::endl;
+                            if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
+                                cost_so_far[convertToKey(next)] = new_cost;
+                                int priority = new_cost + heuristic(next, currCellPlayer);
+                                std::cout << "Case 2:\n";
+                                std::cout << "Priority: " << priority << "\n";
+                                pq.push(std::make_pair(priority, convertToKey(next)));
+                                came_from[convertToKey(next)] = cur;
+                            } else {
+                                std::cout << "bruh case 2\n";
+                            }
+                        }
+                        //Case 3: DOWN HILL - change in y is -1
+                        else if (mcr_terrain.getBlockAt(neighbor.x, neighbor.y, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 1, neighbor.z) == EMPTY
+                                && mcr_terrain.getBlockAt(neighbor.x, neighbor.y - 2, neighbor.z) != EMPTY) {
+//                            std::cout <<"neighbor: " << glm::to_string(neighbor) << std::endl;
+                            glm::ivec3 next = glm::ivec3(neighbor.x, neighbor.y - 1, neighbor.z);
+                            std::cout <<"neighbor: " << glm::to_string(next) << std::endl;
+                            int new_cost = cost_so_far[cur] + 1;
+                            std::cout <<"new cost for neighbor from cur is: " << new_cost << std::endl;
+                            if (cost_so_far.find(convertToKey(next)) == cost_so_far.end() || new_cost < cost_so_far[convertToKey(next)]) {
+                                cost_so_far[convertToKey(next)] = new_cost;
+                                int priority = new_cost + heuristic(next, currCellPlayer);
+                                std::cout << "Case 3:\n";
+                                std::cout << "Priority: " << priority << "\n";
+                                pq.push(std::make_pair(priority, convertToKey(next)));
+                                came_from[convertToKey(next)] = cur;
+                            } else {
+                                std::cout << "bruh case 3\n";
+                            }
+                        }
+                        else {
+                            std::cout <<"neighbor direction (y unknown): " << glm::to_string(neighbor) << std::endl;
+                            //Case 4: Unreachable
+                            std::cout << "Case 4: Unreachable\n";
+                            //Do nothing.
+                        }
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            std::cout << "Exited while loop\n";
 
-//            //Now, since we have our finished weighted grid, we can make a path between the NPC and the player if
-//            //prev[playerPos] is not null, i.e. graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1
-//            if (came_from.find(currCellPlayer) != came_from.end()) {
-//                //Replace old path with new path:
-//                path.clear();
-//                glm::ivec3 cur = came_from[currCellPlayer];
+            //Now, since we have our finished weighted grid, we can make a path between the NPC and the player if
+            //prev[playerPos] is not null, i.e. graph[currCellPlayer.x - currCell.x + maxDist][currCellPlayer.z - currCell.z + maxDist] > -1
+            if (came_from.find(convertToKey(currCellPlayer)) != came_from.end()) {
+                //Replace old path with new path:
+                path.clear();
+//                std::pair<std::pair<int,int>, int> cur = came_from[convertToKey(currCellPlayer)];
+                std::pair<std::pair<int,int>, int> cur = convertToKey(currCellPlayer);
 
 //                while (came_from.find(cur) != came_from.end()) {
-//                    glm::ivec2 diff = glm::ivec2(cur.x, cur.z) - glm::ivec2(came_from[cur].x, came_from[cur].z);
+//                    glm::ivec2 diff = glm::ivec2(cur.first.first, cur.second) - glm::ivec2(came_from[cur].first.first, came_from[cur].second);
 //                    if (diff == glm::ivec2(0, 1)) {
 //                        path.push_front(FORWARDS);
 //                    }
@@ -176,7 +227,10 @@ void Bear::processInputsNPC() {
 //                    }
 //                    cur = came_from[cur];
 //                }
-//            }
+                pathFinder = false;
+            } else {
+                pathFinder = false;
+            }
         }
     }
 

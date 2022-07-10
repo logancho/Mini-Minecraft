@@ -328,7 +328,7 @@ void Terrain::create(glm::ivec2 curr_zone)
 
     //
 
-    ////CUSTOM MAP////
+    ////CUSTOM MAP//// 1 141 11
     glm::ivec3 ref = glm::ivec3(2.f, 140.f, 13.f);
     placeBlock(ref, 0, 0, 0, GRASS);
     placeBlock(ref, -1, 0, 0, GRASS);

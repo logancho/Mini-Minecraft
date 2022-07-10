@@ -25,7 +25,7 @@ MyGL::MyGL(QWidget *parent)
       m_placing(1),
       m_time(0),
       m_prevPos(glm::vec2()),
-      m_bear(glm::vec3(2.f, 150.f, 13.f), m_terrain, this, m_player),
+      m_bear(glm::vec3(1.f, 145.f, 12.f), m_terrain, this, m_player),
       m_bird(glm::vec3(2.f, 150.f, 12.f), m_terrain, this, m_player)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
