@@ -14,7 +14,7 @@ MyGL::MyGL(QWidget *parent)
       m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
       terrainTexture(), playerTexture(), bearTexture(),
       m_geomQuad(this),
-      m_terrain(this), m_player(glm::vec3(1.f, 147.f, 12.f), m_terrain, this),
+      m_terrain(this), m_player(glm::vec3(-4.f, 135.f, 16.f), m_terrain, this),
       inputB(),
       currentMSecs(QDateTime::currentMSecsSinceEpoch()),
       curMouseX(0.f),
@@ -25,8 +25,8 @@ MyGL::MyGL(QWidget *parent)
       m_placing(1),
       m_time(0),
       m_prevPos(glm::vec2()),
-      m_bear(glm::vec3(1.5f, 145.f, 12.5f), m_terrain, this, m_player),
-      m_bird(glm::vec3(2.f, 150.f, 12.f), m_terrain, this, m_player)
+      m_bear(glm::vec3(1.5f, 142.f, 12.5f), m_terrain, this, m_player),
+      m_bird(glm::vec3(2.5f, 142.f, 11.5f), m_terrain, this, m_player)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
