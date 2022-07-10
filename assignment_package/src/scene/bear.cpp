@@ -2,7 +2,7 @@
 #include <QString>
 #include <iostream>
 
-Bear::Bear(glm::vec3 pos, const Terrain &terrain, OpenGLContext* context, const Player &p)
+Bear::Bear(glm::vec3 pos, Terrain &terrain, OpenGLContext* context, const Player &p)
     : Entity(pos), contextSave(context), m_player(p), m_velocity(0,0,0), m_acceleration(0,0,0),
       playerDir(0, 0, 0),
       mcr_terrain(terrain),
@@ -70,6 +70,23 @@ inline bool Compare(std::pair<int, std::pair<std::pair<int,int>, int>> a, std::p
     return a.first > b.first;
 }
 
+/*
+ * enum BlockType : unsigned char
+{
+    EMPTY, GRASS, DIRT, STONE, WATER, SNOW, LAVA, BEDROCK,
+    WOOD, LEAF, YELLOW_FLOWER, SAND, SEAGRASS, RED_STONE,
+    RED_MUSHROOMS, ICE, DARK_GRASS, DESERT, CACTUS, DEAD_PLANT,
+    BROWN_MUSHROOMS, TALL_GRASS, PLANK, COBBLE, BRICK, CORAL_PINK,
+    CORAL_PURPLE, CORAL_ORANGE
+};
+
+
+
+WOOD for discovering
+SNOW for processing
+GRASS for path
+LEAF for goal
+*/
 void Bear::processInputsNPC() {
     playerDir = m_player.m_position - m_position;
 
@@ -91,6 +108,21 @@ void Bear::processInputsNPC() {
             glm::ivec3 currCellPlayer = glm::ivec3(glm::floor(m_player.m_position));
 
             if (currCell != currCellPlayer) {
+
+                ////Visualize
+                mcr_terrain.setBlockAt(currCellPlayer.x, currCellPlayer.y - 1, currCellPlayer.z, BlockType::LEAF);
+                Chunk* c1 = mcr_terrain.getChunkAt(currCellPlayer.x, currCellPlayer.z).get();
+
+                mcr_terrain.appendEditedChunk(c1);
+
+//                std::vector<Chunk*> toAdd1 = c1->checkFromNeighbor(glm::ivec3(currCellPlayer.x, currCellPlayer.y - 1, currCellPlayer.z));
+
+//                for (Chunk* chunk1 : toAdd1) {
+//                    mcr_terrain.appendEditedChunk(chunk1);
+//                }
+                ////
+
+
                 std::map<std::pair<std::pair<int,int>, int>, std::pair<std::pair<int,int>, int>> came_from;
                 std::map<std::pair<std::pair<int,int>, int>, int> cost_so_far;
 
@@ -106,13 +138,24 @@ void Bear::processInputsNPC() {
 
                 while (!pq.empty()) {
                     std::pair<std::pair<int,int>, int> cur = pq.top().second;
-                    int curCost = pq.top().first;
-
                     pq.pop();
 
                     if (cur == convertToKey(currCellPlayer)) {
                         break;
                     }
+
+                    ////Visualize
+                    mcr_terrain.setBlockAt(cur.first.first, cur.first.second - 1, cur.second, BlockType::SNOW);
+                    Chunk* c2 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                    mcr_terrain.appendEditedChunk(c2);
+
+//                    std::vector<Chunk*> toAdd2 = c2->checkFromNeighbor(convertToVec(cur));
+
+//                    for (Chunk* chunk2 : toAdd2) {
+//                        mcr_terrain.appendEditedChunk(chunk2);
+//                    }
+                    ////
 
                     //Check direct neighbors in 4 directions of current block, North, East, South, West:
                     for (int i = 0; i < 4; i++) {
@@ -134,6 +177,18 @@ void Bear::processInputsNPC() {
 
                                     pq.push(std::make_pair(priority, convertToKey(next)));
                                     came_from[convertToKey(next)] = cur;
+                                    ////Visualize
+                                    mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
+                                    Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                                    mcr_terrain.appendEditedChunk(c3);
+
+//                                    std::vector<Chunk*> toAdd3 = c3->checkFromNeighbor(convertToVec(cur));
+
+//                                    for (Chunk* chunk3 : toAdd3) {
+//                                        mcr_terrain.appendEditedChunk(chunk3);
+//                                    }
+                                    ////
                                 }
                             }
                             //Case 2: UP HILL - change in y is +1
@@ -148,6 +203,18 @@ void Bear::processInputsNPC() {
                                     int priority = new_cost + heuristic(next, currCellPlayer);
                                     pq.push(std::make_pair(priority, convertToKey(next)));
                                     came_from[convertToKey(next)] = cur;
+                                    ////Visualize
+                                    mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
+                                    Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                                    mcr_terrain.appendEditedChunk(c3);
+
+//                                    std::vector<Chunk*> toAdd3 = c3->checkFromNeighbor(convertToVec(cur));
+
+//                                    for (Chunk* chunk3 : toAdd3) {
+//                                        mcr_terrain.appendEditedChunk(chunk3);
+//                                    }
+                                    ////
                                 }
                             }
                             //Case 3: DOWN HILL - change in y is -1
@@ -161,6 +228,18 @@ void Bear::processInputsNPC() {
                                     int priority = new_cost + heuristic(next, currCellPlayer);
                                     pq.push(std::make_pair(priority, convertToKey(next)));
                                     came_from[convertToKey(next)] = cur;
+                                    ////Visualize
+                                    mcr_terrain.setBlockAt(next.x, next.y - 1, next.z, BlockType::WOOD);
+                                    Chunk* c3 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                                    mcr_terrain.appendEditedChunk(c3);
+
+//                                    std::vector<Chunk*> toAdd3 = c3->checkFromNeighbor(convertToVec(cur));
+
+//                                    for (Chunk* chunk3 : toAdd3) {
+//                                        mcr_terrain.appendEditedChunk(chunk3);
+//                                    }
+                                    ////
                                 }
                             }
                         }
@@ -173,6 +252,18 @@ void Bear::processInputsNPC() {
                     std::pair<std::pair<int,int>, int> cur = came_from[convertToKey(currCellPlayer)];
 
                     while (came_from[cur] != cur) {
+                        ////Visualize
+                        mcr_terrain.setBlockAt(cur.first.first, cur.first.second - 1, cur.second, BlockType::GRASS);
+                        Chunk* c4 = mcr_terrain.getChunkAt(cur.first.first, cur.second).get();
+
+                        mcr_terrain.appendEditedChunk(c4);
+
+//                        std::vector<Chunk*> toAdd4 = c4->checkFromNeighbor(convertToVec(cur));
+
+//                        for (Chunk* chunk4 : toAdd4) {
+//                            mcr_terrain.appendEditedChunk(chunk4);
+//                        }
+                        ////
                         glm::ivec2 diff = glm::ivec2(cur.first.first, cur.second) - glm::ivec2(came_from[cur].first.first, came_from[cur].second);
                         if (diff == glm::ivec2(0, 1)) {
                             path.push_front(FORWARDS);
@@ -322,7 +413,7 @@ void Bear::runAnimation(float dT) {
     }
 }
 
-void Bear::computePhysics(float dT, const Terrain &terrain) {
+void Bear::computePhysics(float dT, Terrain &terrain) {
     // TODO: Update the Bear's position based on its acceleration
     // and velocity, and also perform collision detection.
 

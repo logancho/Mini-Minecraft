@@ -18,7 +18,7 @@ public:
     const Player &m_player;
     glm::vec3 m_velocity, m_acceleration;
     glm::vec3 playerDir;
-    const Terrain &mcr_terrain;
+    Terrain &mcr_terrain;
     bool jumpReady;
     float angleX, angleY;
     float epsilon;
@@ -28,7 +28,7 @@ public:
 
     void processInputs(InputBundle &inputs);
     void processInputsNPC();
-    void computePhysics(float dT, const Terrain &terrain);
+    void computePhysics(float dT, Terrain &terrain);
 
     //Bear Model Fields
     uPtr<Node> bearTranslate;
@@ -63,7 +63,7 @@ public:
     glm::ivec3 prevPos;
     glm::ivec3 prevAutoJumpBlock;
 
-    Bear(glm::vec3 pos, const Terrain &terrain, OpenGLContext* context, const Player &p);
+    Bear(glm::vec3 pos, Terrain &terrain, OpenGLContext* context, const Player &p);
     virtual ~Bear() override;
 
     void tick(float dT, InputBundle &input) override;

@@ -330,34 +330,62 @@ void Terrain::create(glm::ivec2 curr_zone)
 
     ////CUSTOM MAP//// 1 141 11
     glm::ivec3 ref = glm::ivec3(2.f, 140.f, 13.f);
-    placeBlock(ref, 0, 0, 0, GRASS);
-    placeBlock(ref, -1, 0, 0, GRASS);
-    placeBlock(ref, -2, 0, 0, GRASS);
-    placeBlock(ref, 0, 0, -1, GRASS);
-    placeBlock(ref, -1, 0, -1, GRASS);
-    placeBlock(ref, -2, 0, -1, GRASS);
-    placeBlock(ref, 0, 0, -2, SNOW);
-    placeBlock(ref, -1, 0, -2, SNOW);
-    placeBlock(ref, -2, 0, -2, SNOW);
+    placeBlock(ref, 0, 0, 0, BEDROCK);
+    placeBlock(ref, -1, 0, 0, BEDROCK);
+    placeBlock(ref, -2, 0, 0, BEDROCK);
+    placeBlock(ref, 0, 0, -1, BEDROCK);
+    placeBlock(ref, -1, 0, -1, BEDROCK);
+    placeBlock(ref, -2, 0, -1, BEDROCK);
+    placeBlock(ref, 0, 0, -2, BEDROCK);
+    placeBlock(ref, -1, 0, -2, BEDROCK);
+    placeBlock(ref, -2, 0, -2, BEDROCK);
 
-    placeBlock(ref, -1, 1, -3, WOOD);
-    placeBlock(ref, -1, 2, -4, WOOD);
-    placeBlock(ref, 0, 3, -4, WOOD);
-    placeBlock(ref, 1, 4, -4, WOOD);
-    placeBlock(ref, 2, 5, -4, WOOD);
-    placeBlock(ref, 2, 6, -3, WOOD);
-    placeBlock(ref, 2, 7, -2, WOOD);
-    placeBlock(ref, 2, 7, -1, WOOD);
-    placeBlock(ref, 2, 7, 0, WOOD);
-    placeBlock(ref, 2, 7, 1, WOOD);
-    placeBlock(ref, 2, 7, 2, WOOD);
-    placeBlock(ref, 1, 7, 2, WOOD);
+    placeBlock(ref, -1, 1, -3, BEDROCK);
+    placeBlock(ref, -1, 2, -4, BEDROCK);
+    placeBlock(ref, 0, 3, -4, BEDROCK);
+    placeBlock(ref, 1, 4, -4, BEDROCK);
+    placeBlock(ref, 2, 5, -4, BEDROCK);
+    placeBlock(ref, 2, 6, -3, BEDROCK);
+    placeBlock(ref, 2, 7, -2, BEDROCK);
+    placeBlock(ref, 2, 7, -1, BEDROCK);
+    placeBlock(ref, 2, 7, 0, BEDROCK);
+    placeBlock(ref, 2, 7, 1, BEDROCK);
+    placeBlock(ref, 2, 7, 2, BEDROCK);
+    placeBlock(ref, 1, 7, 2, BEDROCK);
 
-    placeBlock(ref, 0, 7, 2, ICE);
-    placeBlock(ref, -1, 7, 2, ICE);
-    placeBlock(ref, -1, 7, 1, ICE);
-    placeBlock(ref, -1, 7, 0, ICE);
-    placeBlock(ref, -1, 7, -1, ICE);
+    placeBlock(ref, 0, 7, 2, BEDROCK);
+    placeBlock(ref, -1, 7, 2, BEDROCK);
+    placeBlock(ref, -1, 7, 1, BEDROCK);
+    placeBlock(ref, -1, 7, 0, BEDROCK);
+    placeBlock(ref, -1, 7, -1, BEDROCK);
+//    placeBlock(ref, 0, 0, 0, GRASS);
+//    placeBlock(ref, -1, 0, 0, GRASS);
+//    placeBlock(ref, -2, 0, 0, GRASS);
+//    placeBlock(ref, 0, 0, -1, GRASS);
+//    placeBlock(ref, -1, 0, -1, GRASS);
+//    placeBlock(ref, -2, 0, -1, GRASS);
+//    placeBlock(ref, 0, 0, -2, SNOW);
+//    placeBlock(ref, -1, 0, -2, SNOW);
+//    placeBlock(ref, -2, 0, -2, SNOW);
+
+//    placeBlock(ref, -1, 1, -3, WOOD);
+//    placeBlock(ref, -1, 2, -4, WOOD);
+//    placeBlock(ref, 0, 3, -4, WOOD);
+//    placeBlock(ref, 1, 4, -4, WOOD);
+//    placeBlock(ref, 2, 5, -4, WOOD);
+//    placeBlock(ref, 2, 6, -3, WOOD);
+//    placeBlock(ref, 2, 7, -2, WOOD);
+//    placeBlock(ref, 2, 7, -1, WOOD);
+//    placeBlock(ref, 2, 7, 0, WOOD);
+//    placeBlock(ref, 2, 7, 1, WOOD);
+//    placeBlock(ref, 2, 7, 2, WOOD);
+//    placeBlock(ref, 1, 7, 2, WOOD);
+
+//    placeBlock(ref, 0, 7, 2, ICE);
+//    placeBlock(ref, -1, 7, 2, ICE);
+//    placeBlock(ref, -1, 7, 1, ICE);
+//    placeBlock(ref, -1, 7, 0, ICE);
+//    placeBlock(ref, -1, 7, -1, ICE);
     ////CUSTOM MAP////
 }
 /*
